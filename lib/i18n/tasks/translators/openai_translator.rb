@@ -75,8 +75,13 @@ module I18n::Tasks::Translators
       @model ||= @i18n_tasks.translation_config[:openai_model].presence || 'gpt-3.5-turbo'
     end
 
-    def system_prompt
-      @system_prompt ||= @i18n_tasks.translation_config[:openai_system_prompt].presence || DEFAULT_SYSTEM_PROMPT
+    def system_prompt(to_locale)
+      prompt = @i18n_tasks.translation_config[:openai_system_prompt].presence || DEFAULT_SYSTEM_PROMPT
+
+      [
+        prompt,
+        @i18n_tasks.translation_config.dig(:openai_locale_prompt_extras, to_locale)
+      ].compact.join(' ')
     end
 
     def translate_values(list, from:, to:)
@@ -127,7 +132,7 @@ module I18n::Tasks::Translators
       messages = [
         {
           role: 'system',
-          content: format(system_prompt, from: from, to: to, size: values.size)
+          content: format(system_prompt(to), from: from, to: to, size: values.size)
         },
         {
           role: 'user',
