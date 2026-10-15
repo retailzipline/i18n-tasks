@@ -478,7 +478,12 @@ translation:
   backend: openai
   openai_api_key: <OpenAI API key>
   openai_model: <optional>
+  openai_temperature: <optional, defaults to 0.0>
+  openai_reasoning_effort: <optional, e.g. none, low, medium, high>
 ```
+
+Reasoning models do not accept a custom temperature: when `openai_reasoning_effort` is set to anything other
+than `none`, no temperature is sent, and setting `openai_temperature` as well raises an error.
 
 or via environment variable:
 
