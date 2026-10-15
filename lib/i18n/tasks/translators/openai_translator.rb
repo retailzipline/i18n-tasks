@@ -4,7 +4,7 @@ require 'i18n/tasks/translators/base_translator'
 require 'active_support/core_ext/string/filters'
 
 module I18n::Tasks::Translators
-  class OpenAiTranslator < BaseTranslator
+  class OpenAiTranslator < BaseTranslator # rubocop:disable Metrics/ClassLength
     # max allowed texts per request
     BATCH_SIZE = 25
     RETRIES = 2
@@ -128,7 +128,7 @@ module I18n::Tasks::Translators
       string.gsub(/^```json\s*(.*?)\s*```$/m, '\1').strip
     end
 
-    def translate(values, from, to) # rubocop:disable Metrics/MethodLength
+    def translate(values, from, to)
       messages = [
         {
           role: 'system',
@@ -144,14 +144,7 @@ module I18n::Tasks::Translators
         }
       ]
 
-      response = translator.chat(
-        parameters: {
-          model: model,
-          messages: messages,
-          temperature: 0.0,
-          stream: false
-        }
-      )
+      response = translator.chat(parameters: chat_parameters(messages))
 
       translations = response.dig('choices', 0, 'message', 'content')
       error = response['error']
@@ -159,6 +152,18 @@ module I18n::Tasks::Translators
       fail "AI error: #{error}" if error.present?
 
       translations
+    end
+
+    # Reasoning models reject a custom temperature unless reasoning is turned off.
+    def chat_parameters(messages)
+      config = @i18n_tasks.translation_config
+      effort = config[:openai_reasoning_effort].presence
+      temperature = config[:openai_temperature].presence
+      parameters = { model: model, messages: messages, stream: false, reasoning_effort: effort }.compact
+      return parameters.merge(temperature: temperature || 0.0) if [nil, 'none'].include?(effort)
+      return parameters if temperature.nil?
+
+      fail ::I18n::Tasks::CommandError, I18n.t('i18n_tasks.openai_translate.errors.invalid_temperature', effort: effort)
     end
   end
 end

@@ -118,6 +118,7 @@ en:
       errors:
         invalid_json: invalid JSON returned from backend.
         invalid_size: 'Invalid size returned, expected: %{expected}, received: %{actual}.'
+        invalid_temperature: openai_temperature is not supported when openai_reasoning_effort is %{effort}.
         no_api_key: >-
           Set OpenAI API key via OPENAI_API_KEY environment variable or translation.openai_api_key
           in config/i18n-tasks.yml. Get the key at https://openai.com/.
